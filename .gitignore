@@ -5,3 +5,5 @@ values.tfvars
 .terraform
 .terraform.lock.hcl
 .terraform.tfstate.lock.info
+ecs-external-services.tf
+ecs-intentions.tf
