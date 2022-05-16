@@ -18,12 +18,15 @@ data "consul_service" "each" {
   query_options {
   wait_time = "1m"
   }
-  depends_on = [hcp_consul.main]
+  depends_on = [hcp_consul_cluster.main]
 }
 
 locals {
   tnames = {
+    frontend = data.consul_service.each["frontend"].name
+    payments = data.consul_service.each["payments"].name
     postgres = data.consul_service.each["postgres"].name
+    public-api = data.consul_service.each["public-api"].name
     product-api = data.consul_service.each["product-api"].name
   }
 }

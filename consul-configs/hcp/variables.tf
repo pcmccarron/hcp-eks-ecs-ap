@@ -89,6 +89,9 @@ variable "ecs_ap_globals" {
     task_families = {
       postgres    = "postgres"
       product-api = "product-api"
+      frontend    = "frontend"
+      public-api  = "public-api"
+      payments    = "payments"
     },
     consul_enterprise_image = {
       enterprise_latest   = "public.ecr.aws/hashicorp/consul-enterprise:1.12.0-ent"
@@ -170,7 +173,7 @@ variable "iam_actions_allow" {
 
 variable "hashicups_settings_private" {
   type        = any
-  description = "Settings for hashicups services deployed to default partition"
+  description = "Settings for hashicups services deployed to ecs partition"
   default = [
     {
       name  = "product-api"
@@ -203,6 +206,17 @@ variable "hashicups_settings_private" {
       ],
       volumes = []
     },
+    {
+      name  = "payments"
+      image = "hashicorpdemoapp/payments:v0.0.16"
+      portMappings = [{
+        protocol      = "tcp"
+        containerPort = 1800
+        hostPort      = 1800
+      }]
+      upstreams   = []
+      environment = []
+    },
      {
       name  = "postgres"
       image = "hashicorpdemoapp/product-api-db:v0.0.21"
@@ -224,6 +238,59 @@ variable "hashicups_settings_private" {
         hostPort      = 5432
       }]
       upstreams = []
+    },
+     {
+      name  = "frontend"
+      image = "hashicorpdemoapp/frontend:v1.0.3"
+      portMappings = [
+        {
+          containerPort = 3000
+          hostPort      = 3000
+          protocol      = "tcp"
+        }
+      ],
+      upstreams = [
+        {
+          destinationName      = "public-api"
+          localBindPort        = 8081
+          destinationNamespace = "default"
+          destinationPartition = "part2"
+        }
+      ],
+      environment = []
+    },
+    {
+      name  = "public-api"
+      image = "hashicorpdemoapp/public-api:v0.0.6"
+      environment = [{
+        name  = "BIND_ADDRESS"
+        value = ":8081"
+        },
+        {
+          name  = "PRODUCT_API_URI"
+          value = "http://localhost:9090"
+        },
+        {
+          name  = "PAYMENT_API_URI"
+          value = "http://localhost:1800"
+      }]
+      portMappings = [{
+        protocol      = "tcp"
+        containerPort = 8081
+        hostPort      = 8081
+      }]
+      upstreams = [{
+        destinationName      = "product-api"
+        destinationNamespace = "default"
+        destinationPartition = "default"
+        localBindPort        = 9090
+        },
+        {
+          destinationName      = "payments"
+          destinationNamespace = "default"
+          destinationPartition = "default"
+          localBindPort        = 1800
+      }]
     },
   ]
 }
