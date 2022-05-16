@@ -68,3 +68,9 @@ provider "kubectl" {
   token                  = data.aws_eks_cluster_auth.cluster.token
   load_config_file       = false
 }
+
+provider "consul" {
+  address    = hcp_consul_cluster.main.consul_public_endpoint_url
+  token      = hcp_consul_cluster.main.consul_root_token_secret_id
+  datacenter = var.cluster_id
+}

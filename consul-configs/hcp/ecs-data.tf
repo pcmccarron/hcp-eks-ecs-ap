@@ -18,6 +18,7 @@ data "consul_service" "each" {
   query_options {
   wait_time = "1m"
   }
+  depends_on = [hcp_consul.main]
 }
 
 locals {
