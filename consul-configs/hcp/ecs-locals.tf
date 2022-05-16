@@ -25,7 +25,7 @@ locals {
 
 
   # config-aws-security_groups.tf
-  security_group_name          = "example-client-app-alb"
+  security_group_name          = "frontend_lb"
   ingress_cidr_block           = "0.0.0.0/0"
   egress_cidr_block            = "0.0.0.0/0"
   security_group_resource_name = "${local.ap_global_name}-${local.security_group_name}"
@@ -54,7 +54,29 @@ locals {
   launch_fargate = var.ecs_ap_globals.ecs_capacity_providers[0]
   namespace      = var.ecs_ap_globals.namespace_identifiers.global
   service_tag    = "TASK_DEFINITION"
+    env_vars = {
+      public_api_url = {
+        name  = "NEXT_PUBLIC_PUBLIC_API_URL"
+        value = "http://${aws_lb.frontend_lb.dns_name}:8081"
+      }
+    }
   retry_join_url = jsondecode(base64decode(hcp_consul_cluster.main.consul_config_file))["retry_join"]
+  requires_target_group_association = [
+  for c in var.hashicups_settings_private : c if c.name == var.ecs_ap_globals.task_families.frontend || c.name == var.ecs_ap_globals.task_families.public-api
+  ]
+  load_balancer_public_apps_config = [
+  for n in local.requires_target_group_association : {
+    container_name = n.name
+    container_port = n.portMappings[0].containerPort
+    target_group   = aws_lb_target_group.hashicups[n.name].arn
+    }
+  ]
+
+  # reader-aws-load_balancer.tf
+  load_balancer_name         = local.ap_global_name
+  load_balancer_target_group = "${local.ap_global_name}-target-group"
+  load_balancer_type         = "application"
+  lb_listener_type           = "forward"
 
 
 consul_service_defaults_protocols = {

@@ -201,7 +201,7 @@ variable "hashicups_settings_private" {
           destinationName      = "postgres"
           localBindPort        = 5432
           destinationNamespace = "default"
-          destinationPartition = "default"
+          destinationPartition = "ecs"
         },
       ],
       volumes = []
@@ -254,7 +254,7 @@ variable "hashicups_settings_private" {
           destinationName      = "public-api"
           localBindPort        = 8081
           destinationNamespace = "default"
-          destinationPartition = "part2"
+          destinationPartition = "ecs"
         }
       ],
       environment = []
@@ -282,13 +282,13 @@ variable "hashicups_settings_private" {
       upstreams = [{
         destinationName      = "product-api"
         destinationNamespace = "default"
-        destinationPartition = "default"
+        destinationPartition = "ecs"
         localBindPort        = 9090
         },
         {
           destinationName      = "payments"
           destinationNamespace = "default"
-          destinationPartition = "default"
+          destinationPartition = "ecs"
           localBindPort        = 1800
       }]
     },
@@ -299,4 +299,46 @@ variable "security_group_ids" {
   type        = list(string)
   description = "A list of security group IDs which should allow inbound Consul client traffic. If no security groups are provided, one will be generated for use."
   default     = []
+}
+
+variable "target_group_settings" {
+  type        = any
+  description = "Load Balancer target groups for HashiCups services exposed to internet"
+  default = {
+    elb = {
+      services = [
+        {
+          name                 = "frontend"
+          service_type         = "http"
+          protocol             = "HTTP"
+          target_group_type    = "ip"
+          port                 = "80"
+          deregistration_delay = 30
+          health = {
+            healthy_threshold   = 2
+            unhealthy_threshold = 2
+            interval            = 30
+            timeout             = 29
+            path                = "/"
+          }
+        },
+        {
+          name                 = "public-api"
+          service_type         = "http"
+          protocol             = "HTTP"
+          target_group_type    = "ip"
+          port                 = "8081"
+          deregistration_delay = 30
+          health = {
+            healthy_threshold   = 2
+            unhealthy_threshold = 2
+            interval            = 30
+            timeout             = 29
+            path                = "/"
+            port                = "8081"
+          },
+        },
+      ]
+    }
+  }
 }
