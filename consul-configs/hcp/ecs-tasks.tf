@@ -42,11 +42,20 @@ module "hashicups-tasks-private" {
       }
     }
     # Create the environment variables so that the frontend is loaded with the environment variable needed to communicate with public-api
-    environment = concat(each.value.environment,
+    environment = each.value.name == var.ecs_ap_globals.task_families.frontend ? concat(each.value.environment,
+      [{
+        name  = local.env_vars.public_api_url.name
+        value = local.env_vars.public_api_url.value
+      },
+      {
+        name  = "NAME"
+        value = "${var.ecs_ap_globals.global_prefix}-${each.value.name}"
+      }]) : concat(each.value.environment,
       [{
         name  = "NAME"
         value = "${var.ecs_ap_globals.global_prefix}-${each.value.name}"
-    }])
+      }]
+    )
     portMappings = [{
       containerPort = each.value.portMappings[0].containerPort
       hostPort      = each.value.portMappings[0].hostPort
