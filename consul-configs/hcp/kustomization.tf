@@ -39,7 +39,7 @@ provider "kustomization" {
 }
 
 data "kustomization" "gateway_crds" {
-  path = "github.com/hashicorp/consul-api-gateway/config/crd?ref=v0.1.0-beta"
+  path = "github.com/hashicorp/consul-api-gateway/config/crd?ref=v0.3.0"
 }
 
 resource "kustomization_resource" "gateway_crds" {

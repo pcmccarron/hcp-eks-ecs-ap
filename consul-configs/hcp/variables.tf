@@ -4,6 +4,12 @@ variable "cluster_id" {
   default     = "consul"
 }
 
+variable "min_consul_version" {
+  type        = string
+  description = "The version of Consul to use"
+  default     = "1.12.2"
+}
+
 variable "vpc_region" {
   type        = string
   description = "The AWS region to create resources in"
@@ -341,4 +347,28 @@ variable "target_group_settings" {
       ]
     }
   }
+}
+
+variable "enable_mesh_gateway_wan_federation" {
+  description = "Controls whether or not WAN federation via mesh gateways is enabled. Default is false."
+  type        = bool
+  default     = false
+}
+
+variable "wan_address" {
+  description = "The WAN address of the mesh gateway."
+  type        = string
+  default     = ""
+}
+
+variable "wan_port" {
+  description = "The WAN port of the mesh gateway. Default is 8443"
+  type        = number
+  default     = 8443
+}
+
+variable "consul_ecs_image" {
+  description = "Consul ECS image to use in all tasks."
+  type        = string
+  default     = "public.ecr.aws/hashicorp/consul-ecs:0.5.0"
 }

@@ -24,5 +24,3 @@ resource "aws_ecs_service" "private_services" {
     }
   }
 }
-
-

@@ -1,14 +1,13 @@
 module "hashicups-tasks-private" {
   for_each                       = { for service in var.hashicups_settings_private : service.name => service }
   source                         = "registry.terraform.io/hashicorp/consul-ecs/aws//modules/mesh-task"
-  version                        = "0.4.1"
+  version                        = "0.5.0"
   acls                           = true
   tls                            = true
   consul_image                   = var.ecs_ap_globals.consul_enterprise_image.enterprise_latest
+  consul_http_addr               = hcp_consul_cluster.main.consul_public_endpoint_url
   consul_server_ca_cert_arn      = aws_secretsmanager_secret.consul_ca_cert.arn
   gossip_key_secret_arn          = aws_secretsmanager_secret.gossip_key.arn
-  consul_client_token_secret_arn = module.acl_controller[local.clusters.one].client_token_secret_arn
-  acl_secret_name_prefix         = local.acl_prefixes.cluster_one
   retry_join                     = local.retry_join_url
   consul_datacenter              = local.consul_dc
   consul_partition               = local.admin_partitions.one
@@ -70,4 +69,49 @@ module "hashicups-tasks-private" {
   additional_execution_role_policies = [
     aws_iam_policy.hashicups.arn
   ]
+}
+
+resource "aws_cloudwatch_log_group" "log_group" {
+  name = "${var.cluster_id}-mgw-logs"
+}
+
+locals {
+  log_config = {
+    logDriver = "awslogs"
+    options = {
+      awslogs-group         = aws_cloudwatch_log_group.log_group.name
+      awslogs-region        = var.region
+      awslogs-stream-prefix = "mesh-gateway"
+    }
+  }
+}
+
+module "mesh_gateway" {
+  source                             = "registry.terraform.io/hashicorp/consul-ecs/aws//modules/gateway-task"
+  version                            = "0.5.0" 
+  family                             = "${var.cluster_id}-mgw"
+  ecs_cluster_arn                    = aws_ecs_cluster.clusters[local.clusters.one].arn
+  subnets                            = module.vpc.private_subnets
+  security_groups                    = [module.vpc.default_security_group_id]
+  log_configuration                  = local.log_config
+  retry_join                         = local.retry_join_url
+  kind                               = "mesh-gateway"
+  consul_datacenter                  = local.consul_dc
+  consul_partition                   = local.admin_partitions.one
+  enable_mesh_gateway_wan_federation = false
+  tls                                = true
+  consul_server_ca_cert_arn          = aws_secretsmanager_secret.consul_ca_cert.arn
+  gossip_key_secret_arn              = aws_secretsmanager_secret.gossip_key.arn
+  consul_image                       = "public.ecr.aws/hashicorp/consul-enterprise:1.12.2-ent"
+  
+ 
+  acls                         = true
+  enable_acl_token_replication = false
+  consul_http_addr             = hcp_consul_cluster.main.consul_private_endpoint_url
+
+  lb_enabled = true
+  lb_subnets = module.vpc.public_subnets
+  lb_vpc_id  = module.vpc.vpc_id
+
+  consul_ecs_image = var.consul_ecs_image
 }

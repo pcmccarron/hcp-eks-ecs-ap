@@ -88,5 +88,9 @@ consul_service_defaults_protocols = {
   tasks = {
     private = [for t in var.hashicups_settings_private : t.name]
   }
-}
 
+# set up log_path for mesh gateway
+mgw_log_path = {
+  mgw = "${local.log_path_base}/${local.admin_partitions.one}/mgw"
+}
+}
