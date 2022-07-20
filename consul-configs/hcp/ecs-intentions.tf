@@ -1,6 +1,6 @@
-resource "consul_config_entry" "postgres_intentions_to_product_api" {
+resource "consul_config_entry" "frontend_to_public_api_intention" {
   kind      = "service-intentions"
-  name      = local.tnames.postgres
+  name      = local.tnames.public-api
   partition = var.ecs_ap_globals.admin_partitions_identifiers.partition-one
   config_json = jsonencode({
     Sources = [
@@ -8,9 +8,9 @@ resource "consul_config_entry" "postgres_intentions_to_product_api" {
         Action     = "allow"
         Precedence = 9
         Type       = "consul"
-        Name       = local.tnames.product-api
-        Namespace  = var.ecs_ap_globals.namespace_identifiers.global
-        Partition  = var.ecs_ap_globals.admin_partitions_identifiers.partition-one
+        Name       = "nginx"
+        Namespace  = "default"
+        Partition  = "eks"
       }
     ],
   })

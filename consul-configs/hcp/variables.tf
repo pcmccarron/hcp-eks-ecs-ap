@@ -95,12 +95,11 @@ variable "ecs_ap_globals" {
     task_families = {
       postgres    = "postgres"
       product-api = "product-api"
-      frontend    = "frontend"
       public-api  = "public-api"
       payments    = "payments"
     },
     consul_enterprise_image = {
-      enterprise_latest   = "public.ecr.aws/hashicorp/consul-enterprise:1.12.0-ent"
+      enterprise_latest   = "public.ecr.aws/hashicorp/consul-enterprise:1.12.2-ent"
     },
     ecs_clusters = {
       one = {
@@ -137,43 +136,6 @@ variable "iam_service_principals" {
   default = {
     ecs_tasks = "ecs-tasks.amazonaws.com"
     ecs       = "ecs.amazonaws.com"
-  }
-}
-
-variable "iam_role_name" {
-  type        = string
-  description = "Base name of the IAM role to create in this tutorial"
-  default     = "demo"
-}
-
-variable "iam_effect" {
-  type        = map(string)
-  description = "Allow or Deny for IAM policies"
-  default = {
-    allow = "Allow"
-    deny  = "Deny"
-  }
-}
-
-variable "iam_action_type" {
-  type        = map(string)
-  description = "Actions required for IAM roles in this tutorial"
-  default = {
-    assume_role = "sts:AssumeRole"
-  }
-}
-
-variable "iam_actions_allow" {
-  type        = map(any)
-  description = "What resources an IAM role is accessing in this tutorial"
-  default = {
-    secrets_manager_get = ["secretsmanager:GetSecretValue"]
-    logging_create_and_put = [
-      "logs:CreateLogGroup",
-      "logs:CreateLogStream",
-    "logs:PutLogEvent"]
-    elastic_load_balancer = ["elasticloadbalancing:*"]
-
   }
 }
 
@@ -245,26 +207,6 @@ variable "hashicups_settings_private" {
       }]
       upstreams = []
     },
-     {
-      name  = "frontend"
-      image = "hashicorpdemoapp/frontend:v1.0.3"
-      portMappings = [
-        {
-          containerPort = 3000
-          hostPort      = 3000
-          protocol      = "tcp"
-        }
-      ],
-      upstreams = [
-        {
-          destinationName      = "public-api"
-          localBindPort        = 8081
-          destinationNamespace = "default"
-          destinationPartition = "ecs"
-        }
-      ],
-      environment = []
-    },
     {
       name  = "public-api"
       image = "hashicorpdemoapp/public-api:v0.0.6"
@@ -313,21 +255,6 @@ variable "target_group_settings" {
   default = {
     elb = {
       services = [
-        {
-          name                 = "frontend"
-          service_type         = "http"
-          protocol             = "HTTP"
-          target_group_type    = "ip"
-          port                 = "80"
-          deregistration_delay = 30
-          health = {
-            healthy_threshold   = 2
-            unhealthy_threshold = 2
-            interval            = 30
-            timeout             = 29
-            path                = "/"
-          }
-        },
         {
           name                 = "public-api"
           service_type         = "http"

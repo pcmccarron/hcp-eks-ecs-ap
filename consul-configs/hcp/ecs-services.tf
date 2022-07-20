@@ -5,8 +5,8 @@ resource "aws_ecs_service" "private_services" {
   enable_execute_command = true
   cluster                = aws_ecs_cluster.clusters[local.clusters.one].arn
   launch_type            = local.launch_fargate
-  propagate_tags         = local.service_tag
   name                   = each.value.family
+  propagate_tags         = "TASK_DEFINITION" 
   task_definition        = each.value.arn
   network_configuration {
     subnets          = module.vpc.private_subnets

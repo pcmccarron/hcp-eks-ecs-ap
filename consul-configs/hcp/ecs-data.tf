@@ -23,7 +23,6 @@ data "consul_service" "each" {
 
 locals {
   tnames = {
-    frontend = data.consul_service.each["frontend"].name
     payments = data.consul_service.each["payments"].name
     postgres = data.consul_service.each["postgres"].name
     public-api = data.consul_service.each["public-api"].name

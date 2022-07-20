@@ -4,8 +4,8 @@ module "hashicups-tasks-private" {
   version                        = "0.5.0"
   acls                           = true
   tls                            = true
-  consul_image                   = var.ecs_ap_globals.consul_enterprise_image.enterprise_latest
-  consul_http_addr               = hcp_consul_cluster.main.consul_public_endpoint_url
+  consul_image                   = "public.ecr.aws/hashicorp/consul-enterprise:1.12.2-ent"
+  consul_http_addr               = hcp_consul_cluster.main.consul_private_endpoint_url
   consul_server_ca_cert_arn      = aws_secretsmanager_secret.consul_ca_cert.arn
   gossip_key_secret_arn          = aws_secretsmanager_secret.gossip_key.arn
   retry_join                     = local.retry_join_url
@@ -41,20 +41,11 @@ module "hashicups-tasks-private" {
       }
     }
     # Create the environment variables so that the frontend is loaded with the environment variable needed to communicate with public-api
-    environment = each.value.name == var.ecs_ap_globals.task_families.frontend ? concat(each.value.environment,
-      [{
-        name  = local.env_vars.public_api_url.name
-        value = local.env_vars.public_api_url.value
-      },
-      {
-        name  = "NAME"
-        value = "${var.ecs_ap_globals.global_prefix}-${each.value.name}"
-      }]) : concat(each.value.environment,
+    environment = concat(each.value.environment,
       [{
         name  = "NAME"
         value = "${var.ecs_ap_globals.global_prefix}-${each.value.name}"
-      }]
-    )
+    }])
     portMappings = [{
       containerPort = each.value.portMappings[0].containerPort
       hostPort      = each.value.portMappings[0].hostPort
@@ -62,13 +53,6 @@ module "hashicups-tasks-private" {
     }]
 
   }]
-  task_role = {
-    id  = each.value.name
-    arn = aws_iam_role.hashicups[var.ecs_ap_globals.ecs_clusters.one.name].arn
-  }
-  additional_execution_role_policies = [
-    aws_iam_policy.hashicups.arn
-  ]
 }
 
 resource "aws_cloudwatch_log_group" "log_group" {
@@ -110,7 +94,7 @@ module "mesh_gateway" {
   consul_http_addr             = hcp_consul_cluster.main.consul_private_endpoint_url
 
   lb_enabled = true
-  lb_subnets = module.vpc.public_subnets
+  lb_subnets = module.vpc.private_subnets
   lb_vpc_id  = module.vpc.vpc_id
 
   consul_ecs_image = var.consul_ecs_image

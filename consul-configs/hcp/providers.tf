@@ -20,10 +20,6 @@ terraform {
       source  = "gavinbunney/kubectl"
       version = ">= 1.11.3"
     }
-    kustomization = {
-      source  = "kbst/kustomization"
-      version = "0.7.2"
-    }
     consul = {
       source  = "hashicorp/consul"
       version = "~> 2.15.1"

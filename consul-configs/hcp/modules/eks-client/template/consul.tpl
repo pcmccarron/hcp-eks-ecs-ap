@@ -48,12 +48,6 @@ connectInject:
 controller:
   enabled: true
 
-apiGateway:
-  enabled: true
-  image: "hashicorp/consul-api-gateway:0.3.0"
-  managedGatewayClass:
-    serviceType: LoadBalancer
-
 meshGateway:
   enabled: true
   replicas: 1
