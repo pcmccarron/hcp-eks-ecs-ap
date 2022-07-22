@@ -10,4 +10,13 @@ module "eks-vpc" {
   enable_nat_gateway   = true
   single_nat_gateway   = true
   enable_dns_hostnames = true
+  default_security_group_egress = [
+    {
+    rule_action = "allow"
+    from_port   = 8443
+    to_port     = 8443
+    protocol    = "TCP"
+    cidr_block  = "0.0.0.0/0"
+    } 
+  ]
 }

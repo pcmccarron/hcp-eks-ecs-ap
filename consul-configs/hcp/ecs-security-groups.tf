@@ -87,11 +87,11 @@ resource "aws_security_group" "frontend_lb" {
 
 }
 
-resource "aws_security_group_rule" "ingress_from_frontend_lb" {
+resource "aws_security_group_rule" "ingress_for_mesh_gateway" {
   type                     = "ingress"
-  from_port                = 0
-  to_port                  = 65535
+  from_port                = 8443
+  to_port                  = 8443
   protocol                 = "tcp"
-  source_security_group_id = aws_security_group.frontend_lb.id
+  cidr_blocks              = ["0.0.0.0/0"]
   security_group_id        =  module.vpc.default_security_group_id
 }

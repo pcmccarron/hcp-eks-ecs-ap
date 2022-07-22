@@ -53,6 +53,13 @@ module "hashicups-tasks-private" {
     }]
 
   }]
+  task_role = {
+    id  = each.value.name
+    arn = aws_iam_role.hashicups[var.ecs_ap_globals.ecs_clusters.one.name].arn
+  }
+  additional_execution_role_policies = [
+    aws_iam_policy.hashicups.arn
+  ]
 }
 
 resource "aws_cloudwatch_log_group" "log_group" {
@@ -94,7 +101,7 @@ module "mesh_gateway" {
   consul_http_addr             = hcp_consul_cluster.main.consul_private_endpoint_url
 
   lb_enabled = true
-  lb_subnets = module.vpc.private_subnets
+  lb_subnets = module.vpc.public_subnets
   lb_vpc_id  = module.vpc.vpc_id
 
   consul_ecs_image = var.consul_ecs_image
